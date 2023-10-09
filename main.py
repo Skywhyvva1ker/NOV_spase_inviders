@@ -8,9 +8,17 @@ pause = False
 
 screen_width, screen_height = 800, 600
 
-FPS = 60    # frame per second
+FPS = 60  
 clock = pg.time.Clock()
 
+# звуки
+laser_sound = pg.mixer.Sound("NOV_spase_inviders/laser.wav")
+explosion = pg.mixer.Sound("NOV_spase_inviders/explosion.wav")
+laser_sound.set_volume(0.1)
+explosion.set_volume(0.05)
+pg.mixer.music.load("NOV_spase_inviders/background.wav")
+pg.mixer.music.set_volume(0.1)
+pg.mixer.music.play(-1)
 # изображения
 bg_img = pg.image.load('NOV_spase_inviders/background.png')
 icon_img = pg.image.load('NOV_spase_inviders/ufo.png')
@@ -23,7 +31,7 @@ sys_font = pg.font.SysFont('arial', 34)
 font = pg.font.Font('NOV_spase_inviders/04B_19.TTF', 48)
 
 # display.fill('blue', (0, 0, screen_width, screen_height))
-display.blit(bg_img, (0, 0))        # image.tr
+display.blit(bg_img, (0, 0))        
 
 text_img = sys_font.render('Score 123', True, 'white')
 # display.blit(text_img, (100, 50))
@@ -116,6 +124,7 @@ def enemy_model():
         # попал!
         if is_crossed:
             print('BANG!')
+            explosion.play()
             enemy_create()
             bullet_alive = False
 
@@ -128,6 +137,12 @@ def display_redraw():
     if pause == True:
         display.blit(game_pause, (screen_width/2 - w_pause/2, screen_height / 2 - h_pause/2))
     pg.display.update()
+
+def paused_music():
+    if pause == True:
+        pg.mixer.music.pause() 
+    else:
+        pg.mixer.music.play()   
 
 def event_processing():
     global player_dx
@@ -145,6 +160,7 @@ def event_processing():
             # нажали на p - pause/reusme
             if event.key == pg.K_p:
                 pause = not pause
+                paused_music()
         # движение игрока
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_a or event.key == pg.K_LEFT:
@@ -156,6 +172,8 @@ def event_processing():
 
         # по левому клику мыши стреляем
         if event.type == pg.MOUSEBUTTONDOWN:
+            if not bullet_alive and event.button == 1:
+                laser_sound.play()
             key = pg.mouse.get_pressed()    # key[0] - left, key[2] - right
             print(f'{key[0]=} {bullet_alive=}')
             if not bullet_alive:
@@ -169,6 +187,7 @@ def event_processing():
 enemy_create()
 running = True
 while running:
+    #background.play()
     model_update()
     display_redraw()
     running = event_processing()
