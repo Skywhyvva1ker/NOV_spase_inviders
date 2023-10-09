@@ -52,6 +52,7 @@ player_velocity = 10
 player_dx = 0
 player_x = screen_width/2 - player_width/2
 player_y = screen_height  - player_height - player_gap
+score = 0
 
 # пуля
 bullet_img = pg.image.load('NOV_spase_inviders/bullet.png')
@@ -65,14 +66,14 @@ bullet_alive = False    # есть пуля?
 enemy_img = pg.image.load('NOV_spase_inviders/enemy.png')
 enemy_width, enemy_height = enemy_img.get_size()
 enemy_dx = 0
-enemy_dy = 1
+enemy_dy = 2.5
 enemy_x = 0
 enemy_y = 0
 
 def enemy_create():
     """ Создаем противника в случайном месте вверху окна."""
     global enemy_y, enemy_x
-    enemy_x = random.randint(0, screen_width - enemy_width)   # screen_width / 2 - enemy_width / 2
+    enemy_x = random.randint(0, screen_width- enemy_width)   # screen_width / 2 - enemy_width / 2
     enemy_y = 0
     print(f'CREATE: {enemy_x=}')
 
@@ -109,7 +110,7 @@ def bullet_create():
 
 def enemy_model():
     """ Изменение положения противника, рассчет поражений."""
-    global enemy_y, enemy_x, bullet_alive
+    global enemy_y, enemy_x, bullet_alive, score
 
     enemy_x += enemy_dx
     enemy_y += enemy_dy
@@ -123,6 +124,7 @@ def enemy_model():
         is_crossed = re.colliderect(rb)
         # попал!
         if is_crossed:
+            score += 1
             print('BANG!')
             explosion.play()
             enemy_create()
@@ -132,6 +134,8 @@ def display_redraw():
     display.blit(bg_img, (0, 0))
     display.blit(player_img, (player_x, player_y))
     display.blit(enemy_img, (enemy_x, enemy_y))
+    score_img = font.render(f"Score: {score}", True, 'red')
+    display.blit(score_img, (screen_width - 200, screen_height - 585))
     if bullet_alive:
         display.blit(bullet_img, (bullet_x, bullet_y))
     if pause == True:
@@ -145,8 +149,7 @@ def paused_music():
         pg.mixer.music.play()   
 
 def event_processing():
-    global player_dx
-    global pause
+    global player_dx, pause, score
     running = True
     for event in pg.event.get():
         # нажали крестик на окне
@@ -161,6 +164,15 @@ def event_processing():
             if event.key == pg.K_p:
                 pause = not pause
                 paused_music()
+            # нажали на r - restart
+            if event.key == pg.K_r:
+                enemy_create()
+                score = 0
+                running = True
+                while running:
+                    model_update()
+                    display_redraw()
+                    running = event_processing()
         # движение игрока
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_a or event.key == pg.K_LEFT:
@@ -187,7 +199,6 @@ def event_processing():
 enemy_create()
 running = True
 while running:
-    #background.play()
     model_update()
     display_redraw()
     running = event_processing()
