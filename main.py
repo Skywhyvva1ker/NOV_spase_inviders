@@ -5,7 +5,7 @@ import random
 pg.init()
 
 pause = False
-
+game_over = False
 screen_width, screen_height = 800, 600
 
 FPS = 60  
@@ -66,9 +66,10 @@ bullet_alive = False    # есть пуля?
 enemy_img = pg.image.load('NOV_spase_inviders/enemy.png')
 enemy_width, enemy_height = enemy_img.get_size()
 enemy_dx = 0
-enemy_dy = 2.5
+enemy_dy = 10
 enemy_x = 0
 enemy_y = 0
+
 
 def enemy_create():
     """ Создаем противника в случайном месте вверху окна."""
@@ -110,12 +111,13 @@ def bullet_create():
 
 def enemy_model():
     """ Изменение положения противника, рассчет поражений."""
-    global enemy_y, enemy_x, bullet_alive, score
+    global enemy_y, enemy_x, bullet_alive, score, game_over, enemy_dy
 
     enemy_x += enemy_dx
     enemy_y += enemy_dy
     if enemy_y > screen_height:
-        enemy_create()
+        game_over = True
+
 
     # пересечение с пулей
     if bullet_alive:
@@ -125,21 +127,27 @@ def enemy_model():
         # попал!
         if is_crossed:
             score += 1
+            enemy_dy += 0.25
+            if enemy_dy >= 5:
+                enemy_dy = 4.9
             print('BANG!')
             explosion.play()
             enemy_create()
             bullet_alive = False
 
 def display_redraw():
-    display.blit(bg_img, (0, 0))
-    display.blit(player_img, (player_x, player_y))
-    display.blit(enemy_img, (enemy_x, enemy_y))
-    score_img = font.render(f"Score: {score}", True, 'red')
-    display.blit(score_img, (screen_width - 200, screen_height - 585))
-    if bullet_alive:
-        display.blit(bullet_img, (bullet_x, bullet_y))
-    if pause == True:
-        display.blit(game_pause, (screen_width/2 - w_pause/2, screen_height / 2 - h_pause/2))
+    if not game_over:
+        display.blit(bg_img, (0, 0))
+        display.blit(player_img, (player_x, player_y))
+        display.blit(enemy_img, (enemy_x, enemy_y))
+        score_img = font.render(f"Score: {score}", True, 'red')
+        display.blit(score_img, (screen_width - 250, screen_height - 585))
+        if bullet_alive:
+            display.blit(bullet_img, (bullet_x, bullet_y))
+        if pause == True:
+            display.blit(game_pause, (screen_width/2 - w_pause/2, screen_height / 2 - h_pause/2))
+    else:
+        display.blit(game_over_text, (screen_width/2 - w/2, screen_height / 2 - h/2))
     pg.display.update()
 
 def paused_music():
@@ -149,7 +157,7 @@ def paused_music():
         pg.mixer.music.play()   
 
 def event_processing():
-    global player_dx, pause, score
+    global player_dx, pause, score, game_over
     running = True
     for event in pg.event.get():
         # нажали крестик на окне
@@ -168,6 +176,7 @@ def event_processing():
             if event.key == pg.K_r:
                 enemy_create()
                 score = 0
+                game_over = False
                 running = True
                 while running:
                     model_update()
@@ -184,7 +193,9 @@ def event_processing():
 
         # по левому клику мыши стреляем
         if event.type == pg.MOUSEBUTTONDOWN:
-            if not bullet_alive and event.button == 1:
+            if game_over == True:
+                print('Game over')
+            elif not bullet_alive and event.button == 1:
                 laser_sound.play()
             key = pg.mouse.get_pressed()    # key[0] - left, key[2] - right
             print(f'{key[0]=} {bullet_alive=}')
