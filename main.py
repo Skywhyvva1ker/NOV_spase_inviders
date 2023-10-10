@@ -66,10 +66,9 @@ bullet_alive = False    # есть пуля?
 enemy_img = pg.image.load('NOV_spase_inviders/enemy.png')
 enemy_width, enemy_height = enemy_img.get_size()
 enemy_dx = 0
-enemy_dy = 10
+enemy_dy = 1
 enemy_x = 0
 enemy_y = 0
-
 
 def enemy_create():
     """ Создаем противника в случайном месте вверху окна."""
@@ -77,8 +76,6 @@ def enemy_create():
     enemy_x = random.randint(0, screen_width- enemy_width)   # screen_width / 2 - enemy_width / 2
     enemy_y = 0
     print(f'CREATE: {enemy_x=}')
-
-
 
 def model_update():
     if not pause:
