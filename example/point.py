@@ -11,6 +11,10 @@ class Point:
     def distanse(self):
         return sqrt(self.x**2+self.y**2)
 
+    def __repr__(self):
+        s = f"({self.x}, {self.y})"
+        return s
+
 # (3, 4)
 a = Point(3, 4)
 print(a.x, a.y, a.distanse())
